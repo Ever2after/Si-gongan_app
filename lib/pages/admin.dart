@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:firebase_database/firebase_database.dart';
+import '../helper/arguments.dart';
 
 class Admin extends StatefulWidget {
   const Admin({super.key});
@@ -27,24 +28,44 @@ class _AdminState extends State<Admin> {
       stream: FirebaseDatabase.instance.ref('rooms').onValue,
       builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
         if (snapshot.hasData) {
-          Map<dynamic, dynamic> json = snapshot.data!.snapshot.value as dynamic;
-          final rooms = _jsonToList(json);
-          return ListView.builder(
-              itemCount: rooms.length,
-              itemBuilder: ((context, index) {
-                return Container(
-                    height: 50, child: Text(rooms[index]['lastMessage']));
-              }));
+          if (snapshot.data!.snapshot.exists) {
+            Map<dynamic, dynamic> json =
+                snapshot.data!.snapshot.value as dynamic;
+            final rooms = _jsonToList(json);
+            return ListView.builder(
+                itemCount: rooms.length,
+                itemBuilder: ((context, index) {
+                  return _roomToTile(rooms[index]);
+                }));
+          } else {
+            return ListView.builder(
+                itemCount: _rooms.length,
+                itemBuilder: ((context, index) {
+                  return _roomToTile(_rooms[index]);
+                }));
+          }
         } else {
           return ListView.builder(
               itemCount: _rooms.length,
               itemBuilder: ((context, index) {
-                return Container(
-                    height: 50, child: Text(_rooms[index]['lastMessage']));
+                return _roomToTile(_rooms[index]);
               }));
         }
       },
     ));
+  }
+
+  Widget _roomToTile(dynamic room) {
+    return ListTile(
+      leading: FlutterLogo(size: 30),
+      title: Text(room['name']),
+      subtitle: Text(room['lastMessage']),
+      trailing: Text(room['unread'].toString()),
+      onTap: () {
+        Navigator.pushNamed(context, '/chat',
+            arguments: ScreenArguments('admin', room['name']));
+      },
+    );
   }
 
   List<dynamic> _jsonToList(json) {
@@ -53,12 +74,13 @@ class _AdminState extends State<Admin> {
       return {
         'name': key,
         'status': value['status'],
+        'unread': value['unread'],
         'lastMessage': value['lastMessage'],
         'timestamp': value['timestamp']
       };
     });
     return List.from(rooms)
-      ..sort((a, b) => b['timestamp'].compareTo(b['timestamp']));
+      ..sort((a, b) => a['timestamp'].compareTo(b['timestamp']));
   }
 
   void _loadRooms() async {

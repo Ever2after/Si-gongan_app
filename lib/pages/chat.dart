@@ -195,12 +195,13 @@ class _ChatPageState extends State<ChatPage> {
 
       // upload message info
       count++;
-      final author = count % 2 == 0 ? _user : _opponent;
+      final author = _user;
       final msgId = const Uuid().v4();
       final timeStamp = DateTime.now().millisecondsSinceEpoch;
       DatabaseReference ref = FirebaseDatabase.instance.ref('rooms/${_roomId}');
       await ref.set({
         'status': 'status',
+        'unread': 0,
         'timestamp': timeStamp,
         'lastMessage': '사진을 보냈습니다',
       });
@@ -282,8 +283,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _handleSendPressed(types.PartialText message) async {
-    count++;
-    final author = count % 2 == 0 ? _user : _opponent;
+    final author = _user;
     final msgId = const Uuid().v4();
     final timeStamp = DateTime.now().millisecondsSinceEpoch;
     // add message in db
@@ -292,6 +292,7 @@ class _ChatPageState extends State<ChatPage> {
     DatabaseReference ref = FirebaseDatabase.instance.ref('rooms/${_roomId}');
     await ref.set({
       'status': 'status',
+      'unread': 0,
       'timestamp': timeStamp,
       'lastMessage': message.text,
     });
@@ -314,11 +315,13 @@ class _ChatPageState extends State<ChatPage> {
       setState(() {
         _messages = messages;
       });
-
-      // set state _messages = messages;
     } else {
       // no data here
     }
+    // update unread = 0
+    final ref2 = FirebaseDatabase.instance.ref('/rooms/${_roomId}');
+    final snapshot2 = await ref2.get();
+    if (snapshot2.exists) await ref2.update({'unread': 0});
   }
 
   List<types.Message> _jsonToMessages(json) {
@@ -333,7 +336,7 @@ class _ChatPageState extends State<ChatPage> {
             createdAt: message['timestamp']);
       } else if (message['type'] == 'image') {
         return types.ImageMessage(
-          author: _user,
+          author: author,
           createdAt: message['timestamp'],
           height: message['height'],
           id: key,
