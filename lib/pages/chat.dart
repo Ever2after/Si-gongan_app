@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -15,6 +18,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:mime/mime.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
 import '../helper/arguments.dart';
 
@@ -47,8 +51,6 @@ class _ChatPageState extends State<ChatPage> {
     _opponent = types.User(id: args.opponent, lastName: args.opponent);
     _roomId = args.user == 'admin' ? args.opponent : args.user;
 
-    print(args.user);
-    print(args.opponent);
     return Scaffold(
         body: StreamBuilder(
             stream:
@@ -58,23 +60,35 @@ class _ChatPageState extends State<ChatPage> {
                 if (snapshot.data!.snapshot.exists) {
                   Map<dynamic, dynamic> json =
                       snapshot.data!.snapshot.value as dynamic;
-                  final messages = _jsonToList(json);
+                  final messages = _jsonToMessages(json);
+
                   return Chat(
-                      messages: messages,
-                      onSendPressed: _handleSendPressed,
-                      onAttachmentPressed: _handleImageSelection,
-                      user: _user);
+                    messages: messages,
+                    onSendPressed: _handleSendPressed,
+                    onAttachmentPressed: _handleImageSelection,
+                    user: _user,
+                    showUserAvatars: true,
+                    showUserNames: true,
+                  );
                 } else {
                   return Chat(
-                      messages: _messages,
-                      onSendPressed: _handleSendPressed,
-                      user: _user);
+                    messages: _messages,
+                    onSendPressed: _handleSendPressed,
+                    onAttachmentPressed: _handleImageSelection,
+                    user: _user,
+                    showUserAvatars: true,
+                    showUserNames: true,
+                  );
                 }
               } else {
                 return Chat(
-                    messages: _messages,
-                    onSendPressed: _handleSendPressed,
-                    user: _user);
+                  messages: _messages,
+                  onSendPressed: _handleSendPressed,
+                  onAttachmentPressed: _handleImageSelection,
+                  user: _user,
+                  showUserAvatars: true,
+                  showUserNames: true,
+                );
               }
             }));
   }
@@ -97,6 +111,7 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
+/*
   void _handleAttachmentPressed() {
     showModalBottomSheet<void>(
       context: context,
@@ -139,7 +154,7 @@ class _ChatPageState extends State<ChatPage> {
       ),
     );
   }
-
+*/
   void _handleFileSelection() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.any,
@@ -161,28 +176,49 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _handleImageSelection() async {
-    final result = await ImagePicker().pickImage(
+    final XFile? file = await ImagePicker().pickImage(
       imageQuality: 70,
       maxWidth: 1440,
       source: ImageSource.gallery,
     );
 
-    if (result != null) {
-      final bytes = await result.readAsBytes();
+    if (file != null) {
+      final bytes = await file.readAsBytes();
       final image = await decodeImageFromList(bytes);
+      final Uint8List photo = await XFile(file.path).readAsBytes();
 
-      final message = types.ImageMessage(
-        author: _user,
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-        height: image.height.toDouble(),
-        id: const Uuid().v4(),
-        name: result.name,
-        size: bytes.length,
-        uri: result.path,
-        width: image.width.toDouble(),
-      );
+      // upload image to the cloud storage and get url
+      //final fileName = basename(_photo!.path);
+      final storageRef = FirebaseStorage.instance.ref('images/${file.name}');
+      await storageRef.putData(photo);
+      final imageUrl = await storageRef.getDownloadURL();
 
-      _addMessage(message);
+      // upload message info
+      count++;
+      final author = count % 2 == 0 ? _user : _opponent;
+      final msgId = const Uuid().v4();
+      final timeStamp = DateTime.now().millisecondsSinceEpoch;
+      DatabaseReference ref = FirebaseDatabase.instance.ref('rooms/${_roomId}');
+      await ref.set({
+        'status': 'status',
+        'timestamp': timeStamp,
+        'lastMessage': '사진을 보냈습니다',
+      });
+      // messages info update
+      DatabaseReference ref2 =
+          FirebaseDatabase.instance.ref('messages/${_roomId}/${msgId}');
+      await ref2.set({
+        'authorId': author.id,
+        'type': 'image',
+        'message': file.name,
+        'height': image.height.toDouble(),
+        'size': bytes.length,
+        'uri': imageUrl,
+        'width': image.width.toDouble(),
+        'timestamp': timeStamp,
+      });
+    } else {
+      print('image not selected');
     }
   }
 
@@ -264,6 +300,7 @@ class _ChatPageState extends State<ChatPage> {
         FirebaseDatabase.instance.ref('messages/${_roomId}/${msgId}');
     await ref2.set({
       'authorId': author.id,
+      'type': 'text',
       'message': message.text,
       'timestamp': timeStamp,
     });
@@ -273,8 +310,7 @@ class _ChatPageState extends State<ChatPage> {
     final ref = FirebaseDatabase.instance.ref('/messages/${_roomId}}');
     final snapshot = await ref.get();
     if (snapshot.exists) {
-      final messages = _jsonToList(snapshot.value);
-
+      final messages = _jsonToMessages(snapshot.value);
       setState(() {
         _messages = messages;
       });
@@ -285,15 +321,28 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  List<types.Message> _jsonToList(json) {
+  List<types.Message> _jsonToMessages(json) {
     final messages = json.keys.map((key) {
       final message = json['$key'];
       final author = message['authorId'] == _user.id ? _user : _opponent;
-      return types.TextMessage(
-          author: author,
+      if (message['type'] == 'text') {
+        return types.TextMessage(
+            author: author,
+            id: key,
+            text: message['message'],
+            createdAt: message['timestamp']);
+      } else if (message['type'] == 'image') {
+        return types.ImageMessage(
+          author: _user,
+          createdAt: message['timestamp'],
+          height: message['height'],
           id: key,
-          text: message['message'],
-          createdAt: message['timestamp']);
+          name: message['message'],
+          size: message['size'],
+          uri: message['uri'],
+          width: message['width'],
+        );
+      }
     });
     return List.from(messages)
       ..sort((a, b) => b.createdAt!.compareTo(a.createdAt!));

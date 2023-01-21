@@ -70,7 +70,8 @@ class DefaultFirebaseOptions {
     projectId: 'sigongan-3f44b',
     databaseURL: 'https://sigongan-3f44b-default-rtdb.firebaseio.com',
     storageBucket: 'sigongan-3f44b.appspot.com',
-    iosClientId: '196290393572-ckopb2h8q1lc8cbika952rn29qsr4t21.apps.googleusercontent.com',
+    iosClientId:
+        '196290393572-ckopb2h8q1lc8cbika952rn29qsr4t21.apps.googleusercontent.com',
     iosBundleId: 'com.example.flutterFirebase',
   );
 
@@ -81,7 +82,8 @@ class DefaultFirebaseOptions {
     projectId: 'sigongan-3f44b',
     databaseURL: 'https://sigongan-3f44b-default-rtdb.firebaseio.com',
     storageBucket: 'sigongan-3f44b.appspot.com',
-    iosClientId: '196290393572-ckopb2h8q1lc8cbika952rn29qsr4t21.apps.googleusercontent.com',
+    iosClientId:
+        '196290393572-ckopb2h8q1lc8cbika952rn29qsr4t21.apps.googleusercontent.com',
     iosBundleId: 'com.example.flutterFirebase',
   );
 }
