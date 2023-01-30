@@ -36,7 +36,9 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.indigo,
+        primaryColor: Color.fromRGBO(59, 74, 137, 1),
+        brightness: Brightness.light,
       ),
       initialRoute: '/loading',
       routes: {

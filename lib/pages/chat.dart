@@ -3,22 +3,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'package:mime/mime.dart';
-import 'package:open_filex/open_filex.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
 import '../helper/arguments.dart';
 
@@ -30,38 +18,34 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  static const routeName = '/chat';
-  List<types.Message> _messages = [];
-  types.User _user = types.User(id: '');
-  types.User _opponent = types.User(id: '');
+  final List<types.Message> _messages = [];
+  types.User _user = const types.User(id: '');
+  types.User _opponent = const types.User(id: '');
+  String _userId = '';
+  String _opponentId = '';
   String _roomId = '';
-  int count = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadMessages();
     _loadUsers();
   }
 
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)!.settings.arguments as ScreenArguments;
-    _user = types.User(id: args.user, lastName: args.user);
-    _opponent = types.User(id: args.opponent, lastName: args.opponent);
     _roomId = args.user == 'admin' ? args.opponent : args.user;
-
+    _userId = args.user;
+    _opponentId = args.opponent;
     return Scaffold(
         body: StreamBuilder(
-            stream:
-                FirebaseDatabase.instance.ref('messages/${_roomId}').onValue,
+            stream: FirebaseDatabase.instance.ref('messages/$_roomId').onValue,
             builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
               if (snapshot.hasData) {
                 if (snapshot.data!.snapshot.exists) {
                   Map<dynamic, dynamic> json =
                       snapshot.data!.snapshot.value as dynamic;
                   final messages = _jsonToMessages(json);
-
                   return Chat(
                     messages: messages,
                     onSendPressed: _handleSendPressed,
@@ -93,88 +77,6 @@ class _ChatPageState extends State<ChatPage> {
             }));
   }
 
-  /*
-      Chat(
-        messages: _messages,
-        onAttachmentPressed: _handleAttachmentPressed,
-        onMessageTap: _handleMessageTap,
-        onPreviewDataFetched: _handlePreviewDataFetched,
-        onSendPressed: _handleSendPressed,
-        showUserAvatars: true,
-        showUserNames: true,
-        user: _user,
-      ),*/
-
-  void _addMessage(types.Message message) {
-    setState(() {
-      _messages.insert(0, message);
-    });
-  }
-
-/*
-  void _handleAttachmentPressed() {
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (BuildContext context) => SafeArea(
-        child: SizedBox(
-          height: 144,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _handleImageSelection();
-                },
-                child: const Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text('Photo'),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _handleFileSelection();
-                },
-                child: const Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text('File'),
-                ),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text('Cancel'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-*/
-  void _handleFileSelection() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
-    );
-
-    if (result != null && result.files.single.path != null) {
-      final message = types.FileMessage(
-        author: _user,
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-        id: const Uuid().v4(),
-        mimeType: lookupMimeType(result.files.single.path!),
-        name: result.files.single.name,
-        size: result.files.single.size,
-        uri: result.files.single.path!,
-      );
-
-      _addMessage(message);
-    }
-  }
-
   void _handleImageSelection() async {
     final XFile? file = await ImagePicker().pickImage(
       imageQuality: 70,
@@ -194,20 +96,37 @@ class _ChatPageState extends State<ChatPage> {
       final imageUrl = await storageRef.getDownloadURL();
 
       // upload message info
-      count++;
       final author = _user;
       final msgId = const Uuid().v4();
       final timeStamp = DateTime.now().millisecondsSinceEpoch;
-      DatabaseReference ref = FirebaseDatabase.instance.ref('rooms/${_roomId}');
-      await ref.set({
-        'status': 'status',
-        'unread': 0,
-        'timestamp': timeStamp,
-        'lastMessage': '사진을 보냈습니다',
-      });
+
+      DatabaseReference ref = FirebaseDatabase.instance.ref('rooms/$_roomId');
+      final dynamic room = await ref.get();
+      if (room.exists) {
+        int unread = 0;
+        if (room.value['lastSender'] == author.id)
+          unread = room.value['unread'] + 1;
+        else
+          unread = 1;
+        await ref.update({
+          'lastSender': author.id,
+          'unread': unread,
+          'timestamp': timeStamp,
+          'lastMessage': '사진을 보냈습니다',
+        });
+      } else {
+        await ref.set({
+          'status': 'status',
+          'title': _user.id == 'admin' ? _opponent.lastName : _user.lastName,
+          'lastSender': author.id,
+          'unread': 1,
+          'timestamp': timeStamp,
+          'lastMessage': '사진을 보냈습니다',
+        });
+      }
       // messages info update
       DatabaseReference ref2 =
-          FirebaseDatabase.instance.ref('messages/${_roomId}/${msgId}');
+          FirebaseDatabase.instance.ref('messages/$_roomId/$msgId');
       await ref2.set({
         'authorId': author.id,
         'type': 'image',
@@ -223,82 +142,39 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  void _handleMessageTap(BuildContext _, types.Message message) async {
-    if (message is types.FileMessage) {
-      var localPath = message.uri;
-
-      if (message.uri.startsWith('http')) {
-        try {
-          final index =
-              _messages.indexWhere((element) => element.id == message.id);
-          final updatedMessage =
-              (_messages[index] as types.FileMessage).copyWith(
-            isLoading: true,
-          );
-
-          setState(() {
-            _messages[index] = updatedMessage;
-          });
-
-          final client = http.Client();
-          final request = await client.get(Uri.parse(message.uri));
-          final bytes = request.bodyBytes;
-          final documentsDir = (await getApplicationDocumentsDirectory()).path;
-          localPath = '$documentsDir/${message.name}';
-
-          if (!File(localPath).existsSync()) {
-            final file = File(localPath);
-            await file.writeAsBytes(bytes);
-          }
-        } finally {
-          final index =
-              _messages.indexWhere((element) => element.id == message.id);
-          final updatedMessage =
-              (_messages[index] as types.FileMessage).copyWith(
-            isLoading: null,
-          );
-
-          setState(() {
-            _messages[index] = updatedMessage;
-          });
-        }
-      }
-
-      await OpenFilex.open(localPath);
-    }
-  }
-
-  void _handlePreviewDataFetched(
-    types.TextMessage message,
-    types.PreviewData previewData,
-  ) {
-    final index = _messages.indexWhere((element) => element.id == message.id);
-    final updatedMessage = (_messages[index] as types.TextMessage).copyWith(
-      previewData: previewData,
-    );
-
-    setState(() {
-      _messages[index] = updatedMessage;
-    });
-  }
-
   void _handleSendPressed(types.PartialText message) async {
     final author = _user;
     final msgId = const Uuid().v4();
     final timeStamp = DateTime.now().millisecondsSinceEpoch;
-    // add message in db
-    // room info update
 
-    DatabaseReference ref = FirebaseDatabase.instance.ref('rooms/${_roomId}');
-    await ref.set({
-      'status': 'status',
-      'unread': 0,
-      'timestamp': timeStamp,
-      'lastMessage': message.text,
-    });
+    DatabaseReference ref = FirebaseDatabase.instance.ref('rooms/$_roomId');
+    final dynamic room = await ref.get();
+    if (room.exists) {
+      int unread = 0;
+      if (room.value['lastSender'] == author.id)
+        unread = room.value['unread'] + 1;
+      else
+        unread = 1;
+      await ref.update({
+        'lastSender': author.id,
+        'unread': unread,
+        'timestamp': timeStamp,
+        'lastMessage': message.text,
+      });
+    } else {
+      await ref.set({
+        'status': 'status',
+        'title': _user.id == 'admin' ? _opponent.lastName : _user.lastName,
+        'lastSender': author.id,
+        'unread': 1,
+        'timestamp': timeStamp,
+        'lastMessage': message.text,
+      });
+    }
+
     // messages info update
     DatabaseReference ref2 =
-        FirebaseDatabase.instance.ref('messages/${_roomId}/${msgId}');
+        FirebaseDatabase.instance.ref('messages/$_roomId/$msgId');
     await ref2.set({
       'authorId': author.id,
       'type': 'text',
@@ -307,27 +183,34 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  void _loadMessages() async {
-    final ref = FirebaseDatabase.instance.ref('/messages/${_roomId}}');
+  _loadUsers() async {
+    final ref = FirebaseDatabase.instance.ref('users/$_roomId');
     final snapshot = await ref.get();
     if (snapshot.exists) {
-      final messages = _jsonToMessages(snapshot.value);
+      final dynamic data = snapshot.value;
+      final user = types.User(
+        id: _roomId,
+        lastName: data[_roomId]['nickname'],
+      );
+      final admin = types.User(id: 'admin', lastName: 'Admin');
       setState(() {
-        _messages = messages;
+        _user = _userId == 'admin' ? admin : user;
+        _opponent = _userId == 'admin' ? user : admin;
       });
-    } else {
-      // no data here
     }
-    // update unread = 0
-    final ref2 = FirebaseDatabase.instance.ref('/rooms/${_roomId}');
-    final snapshot2 = await ref2.get();
-    if (snapshot2.exists) await ref2.update({'unread': 0});
+    final ref2 = FirebaseDatabase.instance.ref('rooms/$_roomId');
+    final dynamic room = await ref2.get();
+    if (room.exists && room.value['lastSender'] != _user.id) {
+      await ref2.update({
+        'unread': 0,
+      });
+    }
   }
 
   List<types.Message> _jsonToMessages(json) {
     final messages = json.keys.map((key) {
       final message = json['$key'];
-      final author = message['authorId'] == _user.id ? _user : _opponent;
+      final author = message['authorId'] == _userId ? _user : _opponent;
       if (message['type'] == 'text') {
         return types.TextMessage(
             author: author,
@@ -350,6 +233,4 @@ class _ChatPageState extends State<ChatPage> {
     return List.from(messages)
       ..sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
   }
-
-  _loadUsers() {}
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:firebase_database/firebase_database.dart';
 import '../helper/arguments.dart';
+import 'package:intl/intl.dart';
 
 class Admin extends StatefulWidget {
   const Admin({super.key});
@@ -12,13 +12,10 @@ class Admin extends StatefulWidget {
 
 class _AdminState extends State<Admin> {
   List<dynamic> _rooms = [];
-  final _user = const types.User(id: 'everafter', lastName: 'user');
-  final _opponent = const types.User(id: 'admin', lastName: 'opponent');
 
   @override
   void initState() {
     super.initState();
-    _loadRooms();
   }
 
   @override
@@ -56,14 +53,24 @@ class _AdminState extends State<Admin> {
   }
 
   Widget _roomToTile(dynamic room) {
+    final unread = room['lastSender'] == 'admin' ? 0 : room['unread'];
+    final dt = new DateTime.fromMillisecondsSinceEpoch(room['timestamp']);
+    final d12 = DateFormat('MM/dd hh:mm a').format(dt);
+
     return ListTile(
       leading: FlutterLogo(size: 30),
-      title: Text(room['name']),
+      title: Text(room['title']),
       subtitle: Text(room['lastMessage']),
-      trailing: Text(room['unread'].toString()),
+      trailing: Column(
+        children: [
+          Text(d12, style: TextStyle(fontSize: 12)),
+          Text(unread == 0 ? '' : unread.toString(),
+              style: TextStyle(color: Colors.red, fontSize: 16)),
+        ],
+      ),
       onTap: () {
         Navigator.pushNamed(context, '/chat',
-            arguments: ScreenArguments('admin', room['name']));
+            arguments: ScreenArguments('admin', room['id']));
       },
     );
   }
@@ -72,25 +79,16 @@ class _AdminState extends State<Admin> {
     final rooms = json.keys.map((key) {
       final value = json['$key'];
       return {
-        'name': key,
+        'id': key,
+        'title': value['title'],
         'status': value['status'],
+        'lastSender': value['lastSender'],
         'unread': value['unread'],
         'lastMessage': value['lastMessage'],
         'timestamp': value['timestamp']
       };
     });
     return List.from(rooms)
-      ..sort((a, b) => a['timestamp'].compareTo(b['timestamp']));
-  }
-
-  void _loadRooms() async {
-    final ref = FirebaseDatabase.instance.ref('/rooms');
-    final snapshot = await ref.get();
-    if (snapshot.exists) {
-      final rooms = _jsonToList(snapshot.value);
-      setState(() {
-        _rooms = rooms;
-      });
-    }
+      ..sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
   }
 }
