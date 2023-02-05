@@ -1,12 +1,9 @@
-import 'dart:html';
-
 import 'package:flutter/material.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 import 'helper/auth.dart';
-import 'helper/arguments.dart';
 
 import 'pages/home.dart';
 import 'pages/login.dart';
@@ -34,11 +31,11 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: '시(視)공간',
       theme: ThemeData(
         primarySwatch: Colors.indigo,
-        primaryColor: Color.fromRGBO(59, 74, 137, 1),
-        brightness: Brightness.light,
+        primaryColor: Colors.indigoAccent,
+        brightness: Brightness.dark,
       ),
       initialRoute: '/loading',
       routes: {

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../helper/arguments.dart';
@@ -58,14 +59,27 @@ class _AdminState extends State<Admin> {
     final d12 = DateFormat('MM/dd hh:mm a').format(dt);
 
     return ListTile(
-      leading: FlutterLogo(size: 30),
+      leading: Icon(CupertinoIcons.person_solid, size: 30),
       title: Text(room['title']),
-      subtitle: Text(room['lastMessage']),
+      subtitle: Text(
+        room['lastMessage'],
+        maxLines: 2,
+      ),
       trailing: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(d12, style: TextStyle(fontSize: 12)),
-          Text(unread == 0 ? '' : unread.toString(),
-              style: TextStyle(color: Colors.red, fontSize: 16)),
+          SizedBox(height: 6),
+          unread == 0
+              ? SizedBox.shrink()
+              : Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Icon(CupertinoIcons.circle_fill,
+                        color: Colors.redAccent, size: 26),
+                    Text(unread.toString(), style: TextStyle(fontSize: 12)),
+                  ],
+                ),
         ],
       ),
       onTap: () {

@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -38,43 +39,87 @@ class _ChatPageState extends State<ChatPage> {
     _userId = args.user;
     _opponentId = args.opponent;
     return Scaffold(
+        appBar: AppBar(
+          title: Text('물어보기',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        ),
         body: StreamBuilder(
             stream: FirebaseDatabase.instance.ref('messages/$_roomId').onValue,
             builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
+              final isAdmin = args.user == 'admin';
               if (snapshot.hasData) {
                 if (snapshot.data!.snapshot.exists) {
                   Map<dynamic, dynamic> json =
                       snapshot.data!.snapshot.value as dynamic;
                   final messages = _jsonToMessages(json);
-                  return Chat(
-                    messages: messages,
-                    onSendPressed: _handleSendPressed,
-                    onAttachmentPressed: _handleImageSelection,
-                    user: _user,
-                    showUserAvatars: true,
-                    showUserNames: true,
-                  );
+                  return _buildChat(messages, isAdmin);
                 } else {
-                  return Chat(
-                    messages: _messages,
-                    onSendPressed: _handleSendPressed,
-                    onAttachmentPressed: _handleImageSelection,
-                    user: _user,
-                    showUserAvatars: true,
-                    showUserNames: true,
-                  );
+                  return _buildChat(_messages, isAdmin);
                 }
               } else {
-                return Chat(
-                  messages: _messages,
-                  onSendPressed: _handleSendPressed,
-                  onAttachmentPressed: _handleImageSelection,
-                  user: _user,
-                  showUserAvatars: true,
-                  showUserNames: true,
-                );
+                return _buildChat(_messages, isAdmin);
               }
             }));
+  }
+
+  Widget _buildChat(dynamic messages, [bool isAdmin = true]) {
+    if (isAdmin) {
+      return Chat(
+        l10n: const ChatL10nKo(),
+        theme: const DefaultChatTheme(
+          // color
+          primaryColor: Colors.indigoAccent,
+          secondaryColor: Colors.white10,
+          backgroundColor: Colors.black12,
+          // button
+          attachmentButtonIcon: Icon(CupertinoIcons.camera_fill),
+          attachmentButtonMargin: EdgeInsets.symmetric(),
+          sendButtonIcon: Icon(CupertinoIcons.paperplane_fill),
+          sendButtonMargin: EdgeInsets.symmetric(),
+          receivedMessageBodyTextStyle: TextStyle(color: Colors.white),
+        ),
+        messages: messages,
+        onSendPressed: _handleSendPressed,
+        onAttachmentPressed: _handleImageSelection,
+        user: _user,
+        showUserAvatars: true,
+        showUserNames: true,
+      );
+    } else {
+      return Chat(
+        l10n: const ChatL10nKo(),
+        theme: const DefaultChatTheme(
+            // color
+            primaryColor: Colors.indigoAccent,
+            secondaryColor: Colors.white10,
+            backgroundColor: Colors.black12,
+            // button
+            attachmentButtonIcon: Icon(CupertinoIcons.camera_fill, size: 32),
+            attachmentButtonMargin:
+                EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+            sendButtonIcon: Icon(CupertinoIcons.paperplane_fill, size: 32),
+            sendButtonMargin:
+                EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+            // input
+            inputTextStyle: TextStyle(
+              fontSize: 24,
+            ),
+            inputPadding: EdgeInsets.fromLTRB(15, 15, 5, 20),
+            // text style
+            dateDividerTextStyle:
+                TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            sentMessageBodyTextStyle:
+                TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            receivedMessageBodyTextStyle:
+                TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        messages: messages,
+        onSendPressed: _handleSendPressed,
+        onAttachmentPressed: _handleImageSelection,
+        user: _user,
+        showUserAvatars: true,
+        showUserNames: true,
+      );
+    }
   }
 
   void _handleImageSelection() async {
