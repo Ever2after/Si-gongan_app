@@ -1,4 +1,4 @@
-package com.example.flutter_firebase
+package sigongan.first
 
 import io.flutter.embedding.android.FlutterActivity
 

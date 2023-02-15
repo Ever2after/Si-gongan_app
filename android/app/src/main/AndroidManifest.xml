@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.flutter_firebase">
+    package="sigongan.first">
    <application
-        android:label="flutter_firebase"
+        android:label="시(視)공간"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

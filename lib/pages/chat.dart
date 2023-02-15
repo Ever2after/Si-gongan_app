@@ -84,40 +84,57 @@ class _ChatPageState extends State<ChatPage> {
         user: _user,
         showUserAvatars: true,
         showUserNames: true,
+        inputOptions: InputOptions(
+            sendButtonVisibilityMode: SendButtonVisibilityMode.always),
       );
     } else {
       return Chat(
         l10n: const ChatL10nKo(),
         theme: const DefaultChatTheme(
-            // color
-            primaryColor: Colors.indigoAccent,
-            secondaryColor: Colors.white10,
-            backgroundColor: Colors.black12,
-            // button
-            attachmentButtonIcon: Icon(CupertinoIcons.camera_fill, size: 32),
-            attachmentButtonMargin:
-                EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-            sendButtonIcon: Icon(CupertinoIcons.paperplane_fill, size: 32),
-            sendButtonMargin:
-                EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-            // input
-            inputTextStyle: TextStyle(
-              fontSize: 24,
-            ),
-            inputPadding: EdgeInsets.fromLTRB(15, 15, 5, 20),
-            // text style
-            dateDividerTextStyle:
-                TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            sentMessageBodyTextStyle:
-                TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            receivedMessageBodyTextStyle:
-                TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          // color
+          primaryColor: Colors.indigoAccent,
+          secondaryColor: Colors.white10,
+          backgroundColor: Colors.black12,
+          // button
+          attachmentButtonIcon: Icon(CupertinoIcons.camera_fill, size: 32),
+          attachmentButtonMargin:
+              EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          sendButtonIcon: Icon(CupertinoIcons.paperplane_fill, size: 32),
+          sendButtonMargin: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          // input
+          inputTextStyle: TextStyle(
+            fontSize: 24,
+          ),
+          inputPadding: EdgeInsets.fromLTRB(15, 15, 5, 20),
+          // text style
+          dateDividerTextStyle:
+              TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          sentMessageBodyTextStyle:
+              TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          receivedMessageBodyTextStyle:
+              TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
         messages: messages,
         onSendPressed: _handleSendPressed,
         onAttachmentPressed: _handleImageSelection,
         user: _user,
         showUserAvatars: true,
         showUserNames: true,
+        inputOptions: InputOptions(
+          sendButtonVisibilityMode: SendButtonVisibilityMode.always,
+        ),
+        bubbleBuilder: (child,
+            {required dynamic message, required nextMessageInGroup}) {
+          return Semantics(
+            child: Container(
+              color: Colors.indigo,
+              child: child,
+            ),
+            label: message.type.toString() == 'MessageType.text'
+                ? message.text
+                : '이미지 메세지',
+          );
+        },
       );
     }
   }
@@ -237,7 +254,10 @@ class _ChatPageState extends State<ChatPage> {
         id: _roomId,
         lastName: data[_roomId]['nickname'],
       );
-      final admin = types.User(id: 'admin', lastName: 'Admin');
+      final admin = types.User(
+          id: 'admin',
+          lastName: '시공간',
+          imageUrl: "../../assets/sigongan_logo.jpeg");
       setState(() {
         _user = _userId == 'admin' ? admin : user;
         _opponent = _userId == 'admin' ? user : admin;

@@ -24,6 +24,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+            automaticallyImplyLeading: false,
             title: Text('홈',
                 style: TextStyle(
                   fontSize: 24,
@@ -90,7 +91,7 @@ class _HomeState extends State<Home> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            child: Text('도착한 메세지가 없습니다',
+            child: Text('도착한 메세지가 없습니다!',
                 style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,

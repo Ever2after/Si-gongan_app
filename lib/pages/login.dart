@@ -21,6 +21,7 @@ class _LoginState extends State<Login> {
       );
     } else {
       return Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
             title: Text('닉네임 설정',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
@@ -49,21 +50,23 @@ class _GetNicknameState extends State<GetNickname> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Form(
         key: _formKey,
         child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 160.0, horizontal: 90.0),
+          padding: EdgeInsets.symmetric(
+              vertical: size.height * 0.1, horizontal: size.width * 0.1),
           child: Column(
             children: [
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 30.0),
+                padding: EdgeInsets.symmetric(vertical: size.height * 0.1),
                 child: Text(
-                  '당신의 닉네임은?',
+                  '닉네임을 입력해주세요',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
               ),
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 50.0),
+                padding: EdgeInsets.symmetric(vertical: size.height * 0.05),
                 child: TextFormField(
                   decoration: InputDecoration(
                     labelText: '입력',
@@ -73,7 +76,7 @@ class _GetNicknameState extends State<GetNickname> {
                   validator: (String? value) {
                     // 글자수, 특수문자 등 제한 코드
                     if (value == null || value.isEmpty) {
-                      return 'Please enter some text';
+                      return '닉네임을 입력해주세요';
                     }
                     return null;
                   },
@@ -100,7 +103,7 @@ class _GetNicknameState extends State<GetNickname> {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 30),
+                padding: EdgeInsets.fromLTRB(0, size.height * 0.1, 0, 0),
                 child: ElevatedButton(
                   style: ButtonStyle(
                       padding: MaterialStateProperty.all(
