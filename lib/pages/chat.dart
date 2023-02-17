@@ -80,7 +80,7 @@ class _ChatPageState extends State<ChatPage> {
         ),
         messages: messages,
         onSendPressed: _handleSendPressed,
-        onAttachmentPressed: _handleImageSelection,
+        onAttachmentPressed: _handleAttachmentPressed,
         user: _user,
         showUserAvatars: true,
         showUserNames: true,
@@ -116,34 +116,84 @@ class _ChatPageState extends State<ChatPage> {
         ),
         messages: messages,
         onSendPressed: _handleSendPressed,
-        onAttachmentPressed: _handleImageSelection,
+        onAttachmentPressed: _handleAttachmentPressed, // _handleImageSelection,
         user: _user,
         showUserAvatars: true,
         showUserNames: true,
         inputOptions: InputOptions(
           sendButtonVisibilityMode: SendButtonVisibilityMode.always,
         ),
+
         bubbleBuilder: (child,
             {required dynamic message, required nextMessageInGroup}) {
+          print(message.author.lastName);
           return Semantics(
             child: Container(
               color: Colors.indigo,
               child: child,
             ),
             label: message.type.toString() == 'MessageType.text'
-                ? message.text
-                : '이미지 메세지',
+                ? (message.author == _user ? " 내가 전송한 메세지" : "시공간이 전송한 메세지")
+                : (message.author == _user ? "내가 전송한 이미지" : "시공간이 전송한 이미지"),
           );
         },
       );
     }
   }
 
-  void _handleImageSelection() async {
+  void _handleAttachmentPressed() {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (BuildContext context) => SafeArea(
+        child: SizedBox(
+          height: 150,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _handleImageSelection('gallery');
+                },
+                child: const Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    '갤러리에서 선택',
+                    style: TextStyle(fontSize: 20, color: Colors.white),
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _handleImageSelection('camera');
+                },
+                child: const Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text('사진 촬영',
+                      style: TextStyle(fontSize: 20, color: Colors.white)),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text('취소',
+                      style: TextStyle(fontSize: 20, color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleImageSelection(String _option) async {
     final XFile? file = await ImagePicker().pickImage(
       imageQuality: 70,
       maxWidth: 1440,
-      source: ImageSource.gallery,
+      source: _option == 'gallery' ? ImageSource.gallery : ImageSource.camera,
     );
 
     if (file != null) {
@@ -286,12 +336,12 @@ class _ChatPageState extends State<ChatPage> {
         return types.ImageMessage(
           author: author,
           createdAt: message['timestamp'],
-          height: message['height'],
+          height: message['height'].toDouble(),
           id: key,
           name: message['message'],
           size: message['size'],
           uri: message['uri'],
-          width: message['width'],
+          width: message['width'].toDouble(),
         );
       }
     });

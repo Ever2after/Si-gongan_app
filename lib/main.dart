@@ -31,20 +31,21 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: '시(視)공간',
-        theme: ThemeData(
-          primarySwatch: Colors.indigo,
-          primaryColor: Colors.indigoAccent,
-          brightness: Brightness.dark,
-        ),
-        initialRoute: '/loading',
-        routes: {
-          '/': (context) => Home(),
-          '/login': (context) => Login(),
-          '/loading': (context) => Loading(),
-          '/admin': (context) => Admin(),
-          '/chat': (context) => ChatPage(),
-        },
-        showSemanticsDebugger: true);
+      title: '시(視)공간',
+      theme: ThemeData(
+        primarySwatch: Colors.indigo,
+        primaryColor: Colors.indigoAccent,
+        brightness: Brightness.dark,
+      ),
+      initialRoute: '/loading',
+      routes: {
+        '/': (context) => Home(),
+        '/login': (context) => Login(),
+        '/loading': (context) => Loading(),
+        '/admin': (context) => Admin(),
+        '/chat': (context) => ChatPage(),
+      },
+      // showSemanticsDebugger: true,
+    );
   }
 }
