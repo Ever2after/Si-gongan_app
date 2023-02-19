@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -24,7 +25,8 @@ void main() async {
   await AuthHelper.signInAnonymously();
   // notification initialize
   LocalNotification.initialize();
-
+  // load env file
+  await dotenv.load(fileName: '.env');
   // run app
   runApp(const MyApp());
 }

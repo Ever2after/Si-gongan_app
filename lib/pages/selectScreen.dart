@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SelectScreen extends StatefulWidget {
   const SelectScreen({super.key});
@@ -117,7 +118,7 @@ class _SelectScreenState extends State<SelectScreen> {
                 try {
                   //Map<String, dynamic> payload = parseJwtPayLoad(value);
                   //if (payload['id'] == 'sigongan.first') {
-                  if (value == '^sigongan2^') {
+                  if (value == dotenv.env['ADMIN_TOKEN']) {
                     setState(() {
                       authSuccess = true;
                     });

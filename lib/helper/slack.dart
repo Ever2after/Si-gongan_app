@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 sendSlackMessage(String messageText) {
   var url = Uri.https('www.slack.com', '/api/chat.postMessage');
-
+  var token = dotenv.env['SLACK_BOT_TOKEN'];
   //Makes request headers
   Map<String, String> requestHeader = {
     'Content-type': 'application/json',
-    'Authorization':
-        'Bearer xoxb-4820105539558-4820114104358-ki8WZlMsXjtRQc9QwbzF1m1Y'
+    'Authorization': 'Bearer $token'
   };
 
   var request = {
