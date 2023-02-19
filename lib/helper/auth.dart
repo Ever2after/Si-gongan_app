@@ -23,13 +23,18 @@ class AuthHelper {
   }
 
   static Future<bool> isFirst() async {
-    /*
-    String fid = await FirebaseAuth.instance.currentUser!.uid;
-    final list = await UserHelper.get_by_fid(fid);
-    return list.length > 0;
-    */
     final prefs = await SharedPreferences.getInstance();
     final nickname = prefs.getString('nickname') ?? null;
     return nickname == null;
+  }
+
+  static Future<bool> isAdmin() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('isAdmin') ?? false;
+  }
+
+  static Future<String> lastScreen() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('lastScreen') ?? 'nothing';
   }
 }

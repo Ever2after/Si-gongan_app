@@ -112,7 +112,8 @@ class _GetNicknameState extends State<GetNickname> {
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
-                      Navigator.pop(context);
+                      Navigator.pushNamedAndRemoveUntil(
+                          context, '/loading', (r) => false);
                     }
                   },
                   child: const Text('완료',

@@ -11,6 +11,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import '../helper/arguments.dart';
 
+import 'package:Sigongan/helper/slack.dart';
+
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
 
@@ -249,6 +251,11 @@ class _ChatPageState extends State<ChatPage> {
         'width': image.width.toDouble(),
         'timestamp': timeStamp,
       });
+      // slack messaging
+      if (author.id != 'admin') {
+        String msg = '[${author.lastName}] 사진을 보냈습니다';
+        sendSlackMessage(msg);
+      }
     } else {
       print('image not selected');
     }
@@ -293,6 +300,12 @@ class _ChatPageState extends State<ChatPage> {
       'message': message.text,
       'timestamp': timeStamp,
     });
+
+    //slack messaging
+    if (author.id != 'admin') {
+      String msg = '[${author.lastName}] ${message.text}';
+      sendSlackMessage(msg);
+    }
   }
 
   _loadUsers() async {

@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../helper/arguments.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:Sigongan/helper/notification.dart';
+import 'package:Sigongan/helper/slack.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -25,6 +28,7 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    LocalNotification.requestPermission();
     final size = MediaQuery.of(context).size;
     return Scaffold(
         appBar: AppBar(
@@ -60,33 +64,51 @@ class _HomeState extends State<Home> {
                   Navigator.pushNamed(context, '/login',
                       arguments: {'isFirst': false});
                 },
-                leading: Icon(CupertinoIcons.heart_fill),
+                leading: Icon(CupertinoIcons.person_solid),
                 title: Text('닉네임 변경',
                     style:
                         TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
             ListTile(
-                leading: Icon(CupertinoIcons.heart_fill),
+                onTap: () {
+                  launchUrl(Uri.parse(
+                      'https://sigongan.notion.site/sigongan/240c0475323a48a094b9de346a13f04a'));
+                },
+                leading: Icon(CupertinoIcons.person_2_fill),
                 title: Text('팀 시공간 소개',
                     style:
                         TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
             ListTile(
-                leading: Icon(CupertinoIcons.heart_fill),
-                title: Text('개인정보처리방침',
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
-            ListTile(
-                leading: Icon(CupertinoIcons.heart_fill),
-                title: Text('문의하기',
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
-            ListTile(
-                leading: Icon(CupertinoIcons.heart_fill),
+                onTap: () {
+                  launchUrl(Uri.parse('https://www.instagram.com/si_gongan/'));
+                },
+                leading: Icon(CupertinoIcons.speaker_1_fill),
                 title: Text('공지사항',
                     style:
                         TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
             ListTile(
-                leading: Icon(CupertinoIcons.heart_fill),
-                title: Text('관리자 인증',
+                onTap: () {
+                  launchUrl(Uri.parse('mailto:ever2after1@gmail.com'));
+                },
+                leading: Icon(CupertinoIcons.mail_solid),
+                title: Text('문의하기',
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+            ListTile(
+                onTap: () {
+                  launchUrl(Uri.parse(
+                      'https://sites.google.com/view/sigongan/%ED%99%88'));
+                },
+                leading: Icon(CupertinoIcons.doc_fill),
+                title: Text('개인정보처리방침',
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+            ListTile(
+                onTap: () async {
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, '/selectScreen', (r) => false);
+                },
+                leading: Icon(CupertinoIcons.delete_left_fill),
+                title: Text('시작화면으로 나가기',
                     style:
                         TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
           ],
@@ -124,9 +146,7 @@ class _HomeState extends State<Home> {
               style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: n > 0
-                      ? Color.fromARGB(255, 78, 73, 73)
-                      : Colors.white30)),
+                  color: n > 0 ? Colors.white : Colors.white30)),
           margin: EdgeInsets.symmetric(vertical: 30),
         ),
         Row(
@@ -170,13 +190,19 @@ class _HomeState extends State<Home> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
-              child: Text('AI 설명\n(준비중)',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(
-                  alignment: Alignment.center, fixedSize: Size(length, length)),
-              onPressed: () {},
-            ),
+                child: Text('AI 설명\n(준비중)',
+                    textAlign: TextAlign.center,
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                    alignment: Alignment.center,
+                    fixedSize: Size(length, length)),
+                onPressed: () {
+                  // ---------------test notification------------------------------------
+                  // LocalNotification.sampleNotification();
+
+                  //
+                }),
             Container(width: gap),
             ElevatedButton(
               child: Text('닉네임\n변경',
