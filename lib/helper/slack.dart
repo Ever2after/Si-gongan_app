@@ -19,7 +19,5 @@ sendSlackMessage(String messageText) {
   var result = http
       .post(url, body: json.encode(request), headers: requestHeader)
       .then((response) {
-    print(json.decode(response.body));
   });
-  print(result);
 }

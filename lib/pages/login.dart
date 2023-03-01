@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -24,7 +25,13 @@ class _LoginState extends State<Login> {
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
             title: Text('닉네임 설정',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)), leading: Semantics(
+        child:IconButton(
+          icon:Icon(CupertinoIcons.left_chevron,),
+          onPressed: (){Navigator.pop(context);},
+        ),
+        label: '뒤로가기 버튼',
+       )),
         body: GetNickname(),
       );
     }

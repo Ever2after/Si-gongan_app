@@ -13,8 +13,11 @@ import 'pages/login.dart';
 import 'pages/loading.dart';
 import 'pages/select.dart';
 import 'pages/chat.dart';
+import 'pages/chat4blind.dart';
 import 'pages/admin.dart';
 import 'pages/selectScreen.dart';
+import 'pages/settings.dart';
+import 'pages/usage.dart';
 
 void main() async {
   // firebase initilization
@@ -57,8 +60,11 @@ class _MyAppState extends State<MyApp> {
         '/selectScreen': (context) => SelectScreen(),
         '/admin': (context) => Admin(),
         '/chat': (context) => ChatPage(),
+        '/chat4blind': (context) => Chat4Blind(),
+        '/setting': (context) => Setting(),
+        '/usage': (context) => Usage(),
       },
-      // showSemanticsDebugger: true,
+      //showSemanticsDebugger: true,
     );
   }
 }

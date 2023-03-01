@@ -38,7 +38,9 @@ class _HomeState extends State<Home> {
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ))),
+        /*
         endDrawer: Drawer(
+          semanticLabel: "설정 메뉴 열기",
             child: ListView(
           children: [
             SizedBox(
@@ -112,7 +114,7 @@ class _HomeState extends State<Home> {
                     style:
                         TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
           ],
-        )),
+        )),*/
         body: Container(
             width: double.infinity,
             alignment: Alignment.center,
@@ -157,8 +159,8 @@ class _HomeState extends State<Home> {
                     alignment: Alignment.center,
                     fixedSize: Size(length, length)),
                 onPressed: () {
-                  Navigator.pushNamed(context, '/chat',
-                      arguments: ScreenArguments(_myId, 'admin'));
+                  Navigator.pushNamed(context, '/chat4blind',
+                      arguments: MyArguments(_myId, _nickName));
                 },
                 child: Text(
                   '물어보기',
@@ -170,6 +172,7 @@ class _HomeState extends State<Home> {
                     alignment: Alignment.center,
                     fixedSize: Size(length, length)),
                 onPressed: () {
+                  /*
                   showDialog(
                           context: context,
                           builder: (context) =>
@@ -179,6 +182,8 @@ class _HomeState extends State<Home> {
                       pageIndex = 0;
                     });
                   }));
+                  */
+                  Navigator.pushNamed(context, '/usage');
                 },
                 child: Text('사용방법',
                     style:
@@ -190,7 +195,7 @@ class _HomeState extends State<Home> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
-                child: Text('AI 설명\n(준비중)',
+                child: Text('닉네임\n변경',
                     textAlign: TextAlign.center,
                     style:
                         TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -198,21 +203,17 @@ class _HomeState extends State<Home> {
                     alignment: Alignment.center,
                     fixedSize: Size(length, length)),
                 onPressed: () {
-                  // ---------------test notification------------------------------------
-                  // LocalNotification.sampleNotification();
-
-                  //
+                  Navigator.pushNamed(context, '/login', arguments: {"isFirst": false});
                 }),
             Container(width: gap),
             ElevatedButton(
-              child: Text('닉네임\n변경',
+              child: Text('설정',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                   alignment: Alignment.center, fixedSize: Size(length, length)),
               onPressed: () {
-                Navigator.pushNamed(context, '/login',
-                    arguments: {'isFirst': false});
+                Navigator.pushNamed(context, '/setting');
               },
             ),
           ],
@@ -240,19 +241,19 @@ class _HomeState extends State<Home> {
                 },
                 children: [
                   _PageBuilder(
-                      '안녕하세요, 시각장애인을 위한 일대일 시각자료묘사 서비스, 시공간에 오신것을 환영합니다. 서비스 이용 방법에 대해 안내드리겠습니다.'),
+                      '안녕하세요, 시각장애인을 위한 일대일 시각자료묘사 서비스, 시공간에 오신 것을 환영합니다. 서비스 이용 방법을 알려드리겠습니다.'),
                   _PageBuilder(
-                      '홈 화면 중앙에 4개의 버튼이 존재합니다. 좌측 상단의 물어보기 버튼을 눌러 서비스 이용을 위한 채팅방에 입장할 수 있습니다.'),
+                      '홈 화면 중앙에 4개의 버튼이 있습니다. 물어보기 버튼을 눌러 채팅방에 입장할 수 있습니다.'),
                   _PageBuilder(
-                      '채팅방 좌측 하단에 미디어 보내기 버튼을 눌러 해설이 필요한 사진을 전송하세요. 구체적인 요구사항을 같이 보내주시면 더욱 빠른 해설이 가능합니다.'),
+                      '채팅방 왼쪽 아래의 미디어 보내기 버튼을 눌러 해설이 필요한 사진을 전송하세요. 구체적인 요구사항을 같이 보내주시면 더욱 빠르고 자세하게 해설해드립니다.'),
                   _PageBuilder(
                       '평균 해설 소요 시간은 10분입니다. 해설진 사정에 따라 답변 시간이 상이할 수 있습니다.'),
                   _PageBuilder(
                       '폭언, 욕설 채팅 혹은 선정성, 혐오성 이미지 전송 시 서비스 이용이 영구적으로 제한됩니다.'),
                   _PageBuilder(
-                      '홈 화면 우측 하단의 버튼을 통해 닉네임을 변경할 수 있습니다. 닉네임은 해설자에게 보여지는 이름입니다.'),
+                      '닉네임 변경 버튼을 통해 닉네임을 변경할 수 있습니다. 닉네임은 해설자에게 보여지는 이름입니다.'),
                   _PageBuilder(
-                      '홈 화면 최우측 최상단에 위치한 버튼을 눌러 설정 탭을 이용할 수 있습니다. 시각장애인만을 위한 시각자료묘사 서비스 시공간을 지금 바로 이용해보세요')
+                      '홈 화면 맨 오른쪽 위에 위치한 버튼을 눌러 설정 탭을 이용할 수 있습니다. 시각장애인만을 위한 시각자료묘사 서비스 시공간을 지금 바로 이용해보세요!')
                 ],
               ),
             ),

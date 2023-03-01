@@ -128,7 +128,6 @@ class _ChatPageState extends State<ChatPage> {
 
         bubbleBuilder: (child,
             {required dynamic message, required nextMessageInGroup}) {
-          print(message.author.lastName);
           return Semantics(
             child: Container(
               color: Colors.indigo,
