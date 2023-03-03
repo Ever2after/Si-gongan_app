@@ -171,7 +171,11 @@ class _Chat4BlindState extends State<Chat4Blind> {
                             TextButton(
                               onPressed: () {
                                 Navigator.pop(context);
-                                _handleImageSelection('gallery');
+                                try{
+                                  _handleImageSelection('gallery');
+                                } catch(e){
+                                  showDialog(context: context, builder: _failingDialogBuilder);
+                                }
                               },
                               child: const Align(
                                 alignment: AlignmentDirectional.centerStart,
@@ -288,64 +292,89 @@ class _Chat4BlindState extends State<Chat4Blind> {
     );
 
     if (file != null) {
-      final bytes = await file.readAsBytes();
-      final image = await decodeImageFromList(bytes);
-      final Uint8List photo = await XFile(file.path).readAsBytes();
+      try {
+        final bytes = await file.readAsBytes();
+        final image = await decodeImageFromList(bytes);
+        final Uint8List photo = await XFile(file.path).readAsBytes();
 
-      // upload image to the cloud storage and get url
-      //final fileName = basename(_photo!.path);
-      final storageRef = FirebaseStorage.instance.ref('images/${file.name}');
-      await storageRef.putData(photo);
-      final imageUrl = await storageRef.getDownloadURL();
+        // upload image to the cloud storage and get url
+        //final fileName = basename(_photo!.path);
+        final storageRef = FirebaseStorage.instance.ref('images/${file.name}');
+        await storageRef.putData(photo);
+        final imageUrl = await storageRef.getDownloadURL();
 
-      // upload message info
-      final msgId = const Uuid().v4();
-      final timeStamp = DateTime.now().millisecondsSinceEpoch;
+        // upload message info
+        final msgId = const Uuid().v4();
+        final timeStamp = DateTime.now().millisecondsSinceEpoch;
 
-      DatabaseReference ref = FirebaseDatabase.instance.ref('rooms/$_roomId');
-      final dynamic room = await ref.get();
-      if (room.exists) {
-        int unread = 0;
-        if (room.value['lastSender'] == _roomId)
-          unread = room.value['unread'] + 1;
-        else
-          unread = 1;
-        await ref.update({
-          'lastSender': _roomId,
-          'unread': unread,
+        DatabaseReference ref = FirebaseDatabase.instance.ref('rooms/$_roomId');
+        final dynamic room = await ref.get();
+        if (room.exists) {
+          int unread = 0;
+          if (room.value['lastSender'] == _roomId)
+            unread = room.value['unread'] + 1;
+          else
+            unread = 1;
+          await ref.update({
+            'lastSender': _roomId,
+            'unread': unread,
+            'timestamp': timeStamp,
+            'lastMessage': '사진을 보냈습니다',
+          });
+        } else {
+          await ref.set({
+            'status': 'status',
+            'title': _nickname,
+            'lastSender': _roomId,
+            'unread': 1,
+            'timestamp': timeStamp,
+            'lastMessage': '사진을 보냈습니다',
+          });
+        }
+        // messages info update
+        DatabaseReference ref2 =
+            FirebaseDatabase.instance.ref('messages/$_roomId/$msgId');
+        await ref2.set({
+          'authorId': _roomId,
+          'type': 'image',
+          'message': file.name,
+          'height': image.height.toDouble(),
+          'size': bytes.length,
+          'uri': imageUrl,
+          'width': image.width.toDouble(),
           'timestamp': timeStamp,
-          'lastMessage': '사진을 보냈습니다',
         });
-      } else {
-        await ref.set({
-          'status': 'status',
-          'title': _nickname,
-          'lastSender': _roomId,
-          'unread': 1,
-          'timestamp': timeStamp,
-          'lastMessage': '사진을 보냈습니다',
-        });
+        
+        String msg = '[$_nickname] 사진을 보냈습니다';
+        sendSlackMessage(msg);
+
+        showDialog(context: context, builder: _successDialogBuilder);
+      } catch(e) {
+        showDialog(context:context, builder: _failingDialogBuilder);
       }
-      // messages info update
-      DatabaseReference ref2 =
-          FirebaseDatabase.instance.ref('messages/$_roomId/$msgId');
-      await ref2.set({
-        'authorId': _roomId,
-        'type': 'image',
-        'message': file.name,
-        'height': image.height.toDouble(),
-        'size': bytes.length,
-        'uri': imageUrl,
-        'width': image.width.toDouble(),
-        'timestamp': timeStamp,
-      });
-      
-      String msg = '[$_nickname] 사진을 보냈습니다';
-      sendSlackMessage(msg);
-      
     } else {
-      print('image not selected');
+      //showDialog(context:context, builder: _failingDialogBuilder);
     }
+  }
+
+  Widget _failingDialogBuilder(context){
+    return AlertDialog(
+      title: Text('사진 전송 실패'),
+      content: Text('사진 전송에 실패했습니다. 다시 시도해주세요.'),
+      actions: <Widget>[
+        TextButton(child: Text('확인', style: TextStyle(color:Colors.white)), onPressed: (){Navigator.pop(context);},),
+      ]
+    );
+  }
+
+  Widget _successDialogBuilder(context){
+    return AlertDialog(
+      title: Text('사진 전송 성공'),
+      content: Text('사진이 성공적으로 전송되었습니다. 해설을 기다려주세요. 구체적인 요구사항을 보내주시면 시간이 더 단축됩니다.'),
+      actions: <Widget>[
+        TextButton(child: Text('확인', style: TextStyle(color:Colors.white)), onPressed: (){Navigator.pop(context);},),
+      ]
+    );
   }
 
   _updateUnread() async {

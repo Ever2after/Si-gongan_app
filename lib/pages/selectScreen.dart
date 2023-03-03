@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -18,8 +16,7 @@ class _SelectScreenState extends State<SelectScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return SafeArea(
-        child: Scaffold(
+    return Scaffold(
             resizeToAvoidBottomInset: false,
             body: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -93,7 +90,7 @@ class _SelectScreenState extends State<SelectScreen> {
                           ))),
                 ),
               ],
-            )));
+            ));
   }
 
   Widget _DialogBuilder(BuildContext _context, StateSetter setState) {

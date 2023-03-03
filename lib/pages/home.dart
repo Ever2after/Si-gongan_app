@@ -291,7 +291,7 @@ class _HomeState extends State<Home> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _myId = prefs.getString('id')!;
-      _nickName = prefs.getString('nickname')!;
+      _nickName = prefs.getString('nickname') ?? '';
     });
   }
 
