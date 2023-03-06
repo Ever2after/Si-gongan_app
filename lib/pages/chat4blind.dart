@@ -264,7 +264,7 @@ class _Chat4BlindState extends State<Chat4Blind> {
                         }
                         controller.clear();
                         String msg = '[$_nickname] ${value}';
-                        //sendSlackMessage(msg);
+                        sendSlackMessage(msg);
                       } else {
                         print('hello');
                       }
@@ -347,7 +347,7 @@ class _Chat4BlindState extends State<Chat4Blind> {
         });
         
         String msg = '[$_nickname] 사진을 보냈습니다';
-        // sendSlackMessage(msg);
+        sendSlackMessage(msg);
 
         showDialog(context: context, builder: _successDialogBuilder);
       } catch(e) {
