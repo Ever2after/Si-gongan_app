@@ -118,7 +118,7 @@ class _Chat4BlindState extends State<Chat4Blind> {
                 color: (isAdmin ? Colors.black26 : Colors.indigo),
               ),
               padding: EdgeInsets.all(16),
-              child: Text(message.messageContent, style: TextStyle(fontSize: 15),),
+              child: Text(message.messageContent, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
             )
           ),
         ),)
@@ -131,10 +131,6 @@ class _Chat4BlindState extends State<Chat4Blind> {
             alignment: (isAdmin ? Alignment.topLeft : Alignment.topRight),
             child: 
               Container(
-              decoration: BoxDecoration(
-                //borderRadius: BorderRadius.circular(20),
-                color: (isAdmin ? Colors.black26 : Colors.indigo),
-              ),
               //padding: EdgeInsets.all(16),
               child: ExtendedImage.network(message.uri ?? '', width: 300, fit: BoxFit.fill, shape: BoxShape.rectangle ,borderRadius: BorderRadius.circular(10)),
             )
@@ -268,7 +264,7 @@ class _Chat4BlindState extends State<Chat4Blind> {
                         }
                         controller.clear();
                         String msg = '[$_nickname] ${value}';
-                        sendSlackMessage(msg);
+                        //sendSlackMessage(msg);
                       } else {
                         print('hello');
                       }
@@ -285,11 +281,16 @@ class _Chat4BlindState extends State<Chat4Blind> {
   }
 
   _handleImageSelection(String _option) async {
-    final XFile? file = await ImagePicker().pickImage(
+    XFile? file;
+    try {
+      file = await ImagePicker().pickImage(
       imageQuality: 70,
       maxWidth: 1440,
       source: _option == 'gallery' ? ImageSource.gallery : ImageSource.camera,
-    );
+    ); } catch(e){
+      showDialog(context:context, builder: _failingDialogBuilder);
+      print(e);
+    }
 
     if (file != null) {
       try {
@@ -346,7 +347,7 @@ class _Chat4BlindState extends State<Chat4Blind> {
         });
         
         String msg = '[$_nickname] 사진을 보냈습니다';
-        sendSlackMessage(msg);
+        // sendSlackMessage(msg);
 
         showDialog(context: context, builder: _successDialogBuilder);
       } catch(e) {
@@ -370,7 +371,7 @@ class _Chat4BlindState extends State<Chat4Blind> {
   Widget _successDialogBuilder(context){
     return AlertDialog(
       title: Text('사진 전송 성공'),
-      content: Text('사진이 성공적으로 전송되었습니다. 해설을 기다려주세요. 구체적인 요구사항을 보내주시면 시간이 더 단축됩니다.'),
+      content: Text('사진이 성공적으로 전송되었습니다.'),
       actions: <Widget>[
         TextButton(child: Text('확인', style: TextStyle(color:Colors.white)), onPressed: (){Navigator.pop(context);},),
       ]

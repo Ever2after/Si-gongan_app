@@ -65,6 +65,8 @@ class _MyAppState extends State<MyApp> {
         '/usage': (context) => Usage(),
       },
       //showSemanticsDebugger: true,
+      debugShowCheckedModeBanner: false,
     );
   }
 }
+

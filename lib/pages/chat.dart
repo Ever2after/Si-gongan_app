@@ -27,6 +27,8 @@ class _ChatPageState extends State<ChatPage> {
   String _userId = '';
   String _opponentId = '';
   String _roomId = '';
+  String _imageUrl = '';
+  int _imageTimestamp = 0;
 
   @override
   void initState() {
@@ -80,6 +82,40 @@ class _ChatPageState extends State<ChatPage> {
           sendButtonMargin: EdgeInsets.symmetric(),
           receivedMessageBodyTextStyle: TextStyle(color: Colors.white),
         ),
+        onMessageLongPress: (context, dynamic p1) {
+          if(p1.type.toString() == 'MessageType.image'){
+            showDialog(context: context, builder: _imageArchiveDialog,).then((value) {
+              if(value){
+                setState((){
+                  _imageUrl = p1.uri;
+                  _imageTimestamp = p1.createdAt;
+                });
+              }
+            },);
+          }
+          if(p1.type.toString() == 'MessageType.text'){
+            if(_imageUrl != '') {
+              showDialog(context:context, builder: _descArchiveDialog).then((value) {
+                if(value){
+                  final id = const Uuid().v4();
+                  final timeStamp = DateTime.now().millisecondsSinceEpoch;
+                  DatabaseReference ref = FirebaseDatabase.instance.ref('/archive/$id');
+                  ref.set({
+                    'id': _opponent.id,
+                    'nickname': _opponent.lastName,
+                    'imageUrl': _imageUrl,
+                    'description': p1.text,
+                    'imageTimetamp': _imageTimestamp,
+                    'descTimestamp': p1.createdAt,
+                    'timeStamp': timeStamp,
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('성공적으로 아카이빙 되었습니다.')));
+                } 
+              },);
+            }
+          }
+        },
         messages: messages,
         onSendPressed: _handleSendPressed,
         onAttachmentPressed: _handleAttachmentPressed,
@@ -140,6 +176,36 @@ class _ChatPageState extends State<ChatPage> {
         },
       );
     }
+  }
+
+  Widget _imageArchiveDialog(BuildContext context){
+    return AlertDialog(
+      title: Text("아카이브 이미지 선택"),
+      content: Text("이 이미지를 아카이빙 대상으로 선택하시겠습니까?"),
+      actions: [
+        TextButton(child: Text('취소', style: TextStyle(color:Colors.redAccent),), onPressed: (){
+          Navigator.pop(context);
+        },),
+        TextButton(child: Text('확인', style: TextStyle(color:Colors.white),), onPressed: (){
+          Navigator.of(context).pop(true);
+        })
+      ],
+    );
+  }
+
+  Widget _descArchiveDialog(BuildContext context){
+    return AlertDialog(
+      title: Text("아카이브 해설 선택"),
+      content: Text("이 해설을 아카이빙 대상으로 제출하시겠습니까?"),
+      actions: [
+        TextButton(child:Text('취소', style: TextStyle(color:Colors.redAccent)), onPressed: (){
+          Navigator.pop(context);
+        },),
+        TextButton(child: Text('확인', style: TextStyle(color:Colors.white)), onPressed: (){
+          Navigator.of(context).pop(true);
+        },)
+      ]
+    );
   }
 
   void _handleAttachmentPressed() {
