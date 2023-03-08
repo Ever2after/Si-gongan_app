@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../helper/arguments.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 enum People { none, dayoung, boyoung, junyoung, yubin, jusang, banned }
 
@@ -59,6 +59,12 @@ class _AdminState extends State<Admin> {
                   ]),
                 ),
               ),
+              ListTile(
+                  onTap: () async {
+                    launchUrl(Uri.parse('http://13.59.92.24:3000'));
+                  },
+                  leading: Icon(CupertinoIcons.graph_square),
+                  title: Text('해설현황 확인', style: TextStyle(fontSize: 20))),
               ListTile(
                   onTap: () async {
                     Navigator.pushNamedAndRemoveUntil(
